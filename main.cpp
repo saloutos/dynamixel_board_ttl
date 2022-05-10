@@ -7,7 +7,7 @@
 #include "dynamixel_XL330.h"
  
 // Initialize serial port
-Serial pc(PA_9, PA_10, 115200);
+Serial pc(PA_9, PA_10, 921600);
  
 // Pins
 PinName bus_1_rx = PC_11;
