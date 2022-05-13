@@ -162,8 +162,13 @@ void updateBus1(){
     desired_current1[0] = fmaxf(fminf(desired_current1[0],current_limit),-current_limit);
     current_command1[0] = (int16_t)(desired_current1[0]*1000.0f); 
 
-    current_command1[1] = 0;
-    current_command1[2] = 0;
+    desired_current1[1] = Kt_inv*( dxl_kp[1]*(dxl_pos_des[1]-currentPos1[1]) + dxl_kd[1]*(dxl_vel_des[1]-currentVel1[1]) + dxl_tff_des[1] );
+    desired_current1[1] = fmaxf(fminf(desired_current1[1],current_limit),-current_limit);
+    current_command1[1] = (int16_t)(desired_current1[1]*1000.0f); 
+
+    desired_current1[2] = Kt_inv*( dxl_kp[2]*(dxl_pos_des[2]-currentPos1[2]) + dxl_kd[2]*(dxl_vel_des[2]-currentVel1[2]) + dxl_tff_des[2] );
+    desired_current1[2] = fmaxf(fminf(desired_current1[2],current_limit),-current_limit);
+    current_command1[2] = (int16_t)(desired_current1[2]*1000.0f); 
 
     // // could limit control signal (non tau_ff) too to prevent some oscillations due to high velocities
     // desired_current1[0] = 0.0;
@@ -197,6 +202,20 @@ void updateBus2(){
         currentCur2[i] = 0.001f*(float)dxl_current2[i];
     }
     
+    // commands are of the form tau_des[i] = Kp[i]*(pos_des[i]-pos[i]) + Kd[i]*(vel_des[i]-vel[i]) + tau_ff[i]; desired_current[i] = tau_des[i]/Kt;
+    desired_current2[0] = Kt_inv*( dxl_kp[3]*(dxl_pos_des[3]-currentPos2[0]) + dxl_kd[3]*(dxl_vel_des[3]-currentVel2[0]) + dxl_tff_des[3] );
+    desired_current2[0] = fmaxf(fminf(desired_current2[0],current_limit),-current_limit);
+    current_command2[0] = (int16_t)(desired_current2[0]*1000.0f); 
+
+    desired_current2[1] = Kt_inv*( dxl_kp[4]*(dxl_pos_des[4]-currentPos2[1]) + dxl_kd[4]*(dxl_vel_des[4]-currentVel2[1]) + dxl_tff_des[4] );
+    desired_current2[1] = fmaxf(fminf(desired_current2[1],current_limit),-current_limit);
+    current_command2[1] = (int16_t)(desired_current2[1]*1000.0f); 
+
+    desired_current2[2] = Kt_inv*( dxl_kp[5]*(dxl_pos_des[5]-currentPos2[2]) + dxl_kd[5]*(dxl_vel_des[5]-currentVel2[2]) + dxl_tff_des[5] );
+    desired_current2[2] = fmaxf(fminf(desired_current2[2],current_limit),-current_limit);
+    current_command2[2] = (int16_t)(desired_current2[2]*1000.0f); 
+
+
     // // could limit control signal (non tau_ff) too to prevent some oscillations due to high velocities
     // desired_current2[0] = 0.0;
     // desired_current2[1] =  0.0;
@@ -210,8 +229,8 @@ void updateBus2(){
     // current_command2[2] = (int16_t)(desired_current2[2]*1000.0f); //(0.0f);
     
     // send commands
-    // dxl_bus2.SetMultGoalCurrents(dxl_IDs_2, num_IDs_2, current_command2); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
-    dxl_bus2.SetMultGoalCurrents(dxl_IDs_2, num_IDs_2, current_temp2); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
+    dxl_bus2.SetMultGoalCurrents(dxl_IDs_2, num_IDs_2, current_command2); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
+    // dxl_bus2.SetMultGoalCurrents(dxl_IDs_2, num_IDs_2, current_temp2); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
    
 }
 
@@ -483,7 +502,7 @@ int main() {
                             pack_reply(&txDxl6, dxl_IDs_2[2], currentPos2[2], currentVel2[2], Kt*currentCur2[2]); 
                             cansys.write(txDxl6);
                             wait_us(100);
-                            }
+                            }   
                     }
 
                 }
@@ -498,13 +517,13 @@ int main() {
             updateBus2();            
         }
 
-        // if ((state==DATA_MODE)&&(print_data_flag==1)) { // print at slower frequency
-        if ((state==CAN_MODE)&&(print_data_flag==1)){
+        if ((state==DATA_MODE)&&(print_data_flag==1)) { // print at slower frequency
+        // if ((state==CAN_MODE)&&(print_data_flag==1)){
                 print_data_flag = 0;
                 // print data 
-                pc.printf("%.3f, %2.3f, %2.3f, %2.3f, %2.3f, %2.3f\n\r",
-                    t.read(), dxl_pos_des[0], dxl_vel_des[0], dxl_tff_des[0], 
-                    dxl_kp[0], dxl_kd[0]);
+                pc.printf("%.3f,   %2.3f, %2.3f, %2.3f,   %2.3f, %2.3f, %2.3f\n\r",
+                    t.read(), currentPos1[0], currentPos1[1], currentPos1[2], 
+                    currentPos2[0], currentPos2[1], currentPos2[2]);
         }
     } 
     
