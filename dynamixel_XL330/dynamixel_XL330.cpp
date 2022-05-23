@@ -161,6 +161,9 @@ void XL330_bus::SetSomething(uint8_t id, uint16_t address, uint8_t param[], uint
     if (id != 0xFE) getRPacket(); //Broadcast does not returns packets
     else rPacket[8] = 0x00; //No error because no rPacket in broadcast
 
+    for (int i=0; i<8; i++) { errs[i] = 0x00; } // reset error values
+    errs[0] = rPacket[8]; // store error value
+
     switch(rPacket[8]) {
         case 0x00 : //No error
             break;
@@ -182,6 +185,9 @@ uint8_t XL330_bus::GetSomething(uint8_t id, uint16_t address)
 
     sendIPacket();
     getRPacket();
+
+    for (int i=0; i<8; i++) { errs[i] = 0x00; } // reset error values
+    errs[0] = rPacket[8]; // store error value
 
     switch(rPacket[8]) {
         case 0x00 : //No error
@@ -205,6 +211,9 @@ uint16_t XL330_bus::GetSomething16(uint8_t id, uint16_t address)
     sendIPacket();
     getRPacket();
 
+    for (int i=0; i<8; i++) { errs[i] = 0x00; } // reset error values
+    errs[0] = rPacket[8]; // store error value
+
     switch(rPacket[8]) {
         case 0x00 : //No error
             return (uint16_t)rPacket[9] | (((uint16_t)rPacket[10]<<8)&0xFF00);
@@ -226,6 +235,9 @@ uint32_t XL330_bus::GetSomething32(uint8_t id, uint16_t address)
 
     sendIPacket();
     getRPacket();
+
+    for (int i=0; i<8; i++) { errs[i] = 0x00; } // reset error values
+    errs[0] = rPacket[8]; // store error value
 
     switch(rPacket[8]) {
         case 0x00 : //No error
@@ -259,10 +271,13 @@ void XL330_bus::GetManyThings(uint8_t* ret_vals, uint16_t address, uint8_t ids[]
     sendIPacket();
     getRPacket();
     
+    for (int i=0; i<8; i++) { errs[i] = 0x00; } // reset error values
+
     // for loop to extract ret_vals from rPacket
-    int i = 10;
+    int i = 10; 
     for(int j=0; j<idLength; j++){
             ret_vals[j] = rPacket[i];
+            errs[j] = rPacket[i-2]; // store error value
             i+=5; // 4 + data length
         }
    
@@ -276,11 +291,14 @@ void XL330_bus::GetManyThings16(uint16_t* ret_vals, uint16_t address, uint8_t id
 
     sendIPacket();
     getRPacket();
+
+    for (int i=0; i<8; i++) { errs[i] = 0x00; } // reset error values
     
     // for loop to extract ret_vals from rPacket
     int i = 10;
     for(int j=0; j<idLength; j++){
             ret_vals[j] = (uint16_t)rPacket[i] | (((uint16_t)rPacket[i+1]<<8)&0xFF00);
+            errs[j] = rPacket[i-2]; // store error value
             i+=6; // 4 + data length
         }
    
@@ -294,11 +312,14 @@ void XL330_bus::GetManyThings32(uint32_t* ret_vals, uint16_t address, uint8_t id
 
     sendIPacket();
     getRPacket();
+
+    for (int i=0; i<8; i++) { errs[i] = 0x00; } // reset error values
     
     // for loop to extract ret_vals from rPacket
     int i = 10;
     for(int j=0; j<idLength; j++){
             ret_vals[j] = (uint32_t)rPacket[i] | (((uint32_t)rPacket[i+1]<<8)&0x0000FF00) | (((uint32_t)rPacket[i+2]<<16)&0x00FF0000) | (((uint32_t)rPacket[i+3]<<24)&0xFF000000);
+            errs[j] = rPacket[i-2]; // store error value
             i+=8; // 4 + data length
         }
    

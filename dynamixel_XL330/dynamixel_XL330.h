@@ -119,6 +119,10 @@ public:
     XL330_bus(uint32_t baud, PinName tx, PinName rx, PinName rtswitch);
     ~XL330_bus();
 
+    // Necessary values
+    uint8_t errs[8]; // TODO: better way to set number of possible errors? could also pass pointer to array of err values to each "Get..."
+
+
     ////// EEPROM ACCESS METHODS //////
 
     /***** XL330 Network Parameter *****/
@@ -191,7 +195,7 @@ public:
 private:
     /***** Generic functions *****/
     void SetSomething(uint8_t id, uint16_t address, uint8_t param[], uint8_t paramLength);
-    uint8_t GetSomething(uint8_t id, uint16_t address);
+    uint8_t GetSomething(uint8_t id, uint16_t address); // add error value pointer to function args for all "Get..." functions
     uint16_t GetSomething16(uint8_t id, uint16_t address);
     uint32_t GetSomething32(uint8_t id, uint16_t address);
     void SetManyThings(uint8_t length, uint16_t address, uint8_t param[], uint8_t paramLength);
