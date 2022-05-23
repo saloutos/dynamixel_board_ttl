@@ -148,7 +148,7 @@ void XL330_bus::getRPacket()
     }
     tr.stop();
 
-    if (tr.read() >= timeOut) rPacket[8] = 0x80; //Creates an error code for the missed packet
+    // if (tr.read() >= timeOut) rPacket[8] = 0x40; //Creates an error code for the missed packet
 }
 
 /***** Generic functions *****/
@@ -296,10 +296,12 @@ void XL330_bus::GetManyThings16(uint16_t* ret_vals, uint16_t address, uint8_t id
     
     // for loop to extract ret_vals from rPacket
     int i = 10;
+    int k = 8;
     for(int j=0; j<idLength; j++){
             ret_vals[j] = (uint16_t)rPacket[i] | (((uint16_t)rPacket[i+1]<<8)&0xFF00);
-            errs[j] = rPacket[i-2]; // store error value
+            errs[j] = rPacket[k]; // store error value
             i+=6; // 4 + data length
+            k+=6;
         }
    
 }
@@ -378,7 +380,7 @@ void XL330_bus::SetRetDelTime(uint8_t id,uint8_t time)
     parameter[0] = time;
 
     SetSomething(id, RETURN_DELAY_TIME, parameter, 1);
-    wait_us(200000);   //Waits for the value to be written in EEPROM
+    wait_us(200); //wait_us(200000);   //Waits for the value to be written in EEPROM
     return_delay = (((float)time)*2.0f)/1000000.0f;
     
 }
@@ -395,7 +397,7 @@ void XL330_bus::SetControlMode(uint8_t id, uint8_t mode)
     parameter[0] = mode;
     
     SetSomething(id, OPERATING_MODE, parameter, 1);
-    wait_us(200000);   //Waits for the value to be written in EEPROM
+    wait_us(200); //wait_us(200000);   //Waits for the value to be written in EEPROM
 }
 
 uint8_t XL330_bus::GetControlMode(uint8_t id)

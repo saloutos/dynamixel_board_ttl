@@ -206,13 +206,12 @@ void updateBus1(){
     // current_command1[2] = (int16_t)(desired_current1[2]*1000.0f); //(0.0f);
     
     // check dynamixel errors
+    // pc.printf("Errs 1: %d, %d, %d\n\r", dxl_bus1.errs[0], dxl_bus1.errs[1], dxl_bus1.errs[2]);
     for(int i=0; i<num_IDs_1; i++){
         re_init_1[i] = 0;
         if (dxl_bus1.errs[i]==0x80){ // hardware error
-            // init_dxl(&dxl_bus1, dxl_IDs_1[i], 1);
             re_init_1[i] = 1;
             current_command1[i] = 0;
-            pc.printf("Re-init DXL 1-%d\n\r", dxl_IDs_1[i]);
         }
     }
     for(int i=0; i<num_IDs_1; i++){
@@ -220,7 +219,6 @@ void updateBus1(){
             init_dxl(&dxl_bus1, dxl_IDs_1[i], 1);
         }
     }
-
 
     // send commands
     dxl_bus1.SetMultGoalCurrents(dxl_IDs_1, num_IDs_1, current_command1); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
@@ -269,18 +267,17 @@ void updateBus2(){
     // current_command2[2] = (int16_t)(desired_current2[2]*1000.0f); //(0.0f);
     
     // check dynamixel errors
+    // pc.printf("Errs 2: %d, %d, %d\n\r", dxl_bus2.errs[0], dxl_bus2.errs[1], dxl_bus2.errs[2]);
     for(int i=0; i<num_IDs_2; i++){
         re_init_2[i] = 0;
         if (dxl_bus2.errs[i]==0x80){
-            // init_dxl(&dxl_bus2, dxl_IDs_2[i], 1);
             re_init_2[i] = 1;
             current_command2[i] = 0;
-            pc.printf("Re-init DXL 2-%d\n\r", dxl_IDs_2[i]);
         }
     }
     for(int i=0; i<num_IDs_2; i++){
         if (re_init_2[i]==1){
-            init_dxl(&dxl_bus2, dxl_IDs_2[i], 1);
+            init_dxl(&dxl_bus2, dxl_IDs_2[i], 1); 
         }
     }
 
@@ -400,30 +397,15 @@ int main() {
     // Enable dynamixels and set control mode...individual version
     for (int i=0; i<num_IDs_1; i++){
         init_dxl(&dxl_bus1, dxl_IDs_1[i], 0);
-//         dxl_bus1.SetTorqueEn(dxl_IDs_1[i],0x00);    
-//         dxl_bus1.SetRetDelTime(dxl_IDs_1[i],0x32); // 4us delay time?
-// //        dxl_bus.SetControlMode(dxl_IDs[i], POSITION_CONTROL);
-// //        dxl_bus.SetControlMode(dxl_IDs[i], EXTEND_POS_CONTROL);
-//         dxl_bus1.SetControlMode(dxl_IDs_1[i], CURRENT_CONTROL);
-//         // wait(0.1);    
-//         // dxl_bus1.TurnOnLED(dxl_IDs_1[i], 0x01);
-//         // dxl_bus1.SetTorqueEn(dxl_IDs_1[i],0x01); // comment out to disable motors 
-        wait(0.1);
+        wait_us(100000);
     }
 
     pc.printf("Setting up Dynamixel bus 2.\n\r");
     for (int i=0; i<num_IDs_2; i++){
         init_dxl(&dxl_bus2, dxl_IDs_2[i], 0);
-//         dxl_bus2.SetTorqueEn(dxl_IDs_2[i],0x00);    
-//         dxl_bus2.SetRetDelTime(dxl_IDs_2[i],0x32); // 4us delay time?
-// //        dxl_bus.SetControlMode(dxl_IDs[i], POSITION_CONTROL);
-// //        dxl_bus.SetControlMode(dxl_IDs[i], EXTEND_POS_CONTROL);
-//         dxl_bus2.SetControlMode(dxl_IDs_2[i], CURRENT_CONTROL);
-//         // wait(0.1);    
-//         // dxl_bus2.TurnOnLED(dxl_IDs_2[i], 0x01);
-//         // dxl_bus2.SetTorqueEn(dxl_IDs_2[i],0x01); // comment out to disable motors 
-        wait(0.1);
+        wait_us(100000);
     }
+    t2.stop();
 
     pc.printf("Dynamixels are enabled.\n\r");
     wait_us(10000);
