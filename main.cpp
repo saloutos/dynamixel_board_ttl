@@ -183,16 +183,13 @@ void updateBus1(){
         currentPos1[i] = (pulse_to_rad*(float)dxl_position1[i])-dxl_offsets1[i];
         currentVel1[i] = rpm_to_rads*(float)dxl_velocity1[i];
         currentCur1[i] = 0.001f*(float)dxl_current1[i];
-
-        pos_temp1[i] = (int32_t)(dxl_offsets1[i]/pulse_to_rad);
-
-        dxl_pos_des[i] = 0.0;
-        dxl_vel_des[i] = 0.0;
-        dxl_kp[i] = 0.07;
-        dxl_kd[i] = 0.01;
-        dxl_tff_des[i] = 0.0;
-
-
+        // temporary for testing
+        // pos_temp1[i] = (int32_t)(dxl_offsets1[i]/pulse_to_rad);
+        // dxl_pos_des[i] = 0.0;
+        // dxl_vel_des[i] = 0.0;
+        // dxl_kp[i] = 0.07;
+        // dxl_kd[i] = 0.01;
+        // dxl_tff_des[i] = 0.0;
     }
 
 
@@ -256,22 +253,15 @@ void updateBus2(){
         currentPos2[i] = (pulse_to_rad*(float)dxl_position2[i])-dxl_offsets2[i];
         currentVel2[i] = rpm_to_rads*(float)dxl_velocity2[i];
         currentCur2[i] = 0.001f*(float)dxl_current2[i];
-
-        pos_temp2[i] = (int32_t)(dxl_offsets2[i]/pulse_to_rad);
-
-        dxl_pos_des[i+3] = 0.0;
-        dxl_vel_des[i+3] = 0.0;
-        dxl_kp[i+3] = 0.07;
-        dxl_kd[i+3] = 0.01;
-        dxl_tff_des[i+3] = 0.0;
-
-
-
+        // temporary for testing
+        // pos_temp2[i] = (int32_t)(dxl_offsets2[i]/pulse_to_rad);
+        // dxl_pos_des[i+3] = 0.0;
+        // dxl_vel_des[i+3] = 0.0;
+        // dxl_kp[i+3] = 0.07;
+        // dxl_kd[i+3] = 0.01;
+        // dxl_tff_des[i+3] = 0.0;
     }
     
-
-
-
     // commands are of the form tau_des[i] = Kp[i]*(pos_des[i]-pos[i]) + Kd[i]*(vel_des[i]-vel[i]) + tau_ff[i]; desired_current[i] = tau_des[i]/Kt;
     desired_current2[0] = Kt_inv*( dxl_kp[3]*(dxl_pos_des[3]-currentPos2[0]) + dxl_kd[3]*(dxl_vel_des[3]-currentVel2[0]) + dxl_tff_des[3] );
     desired_current2[0] = fmaxf(fminf(desired_current2[0],current_limit),-current_limit);
@@ -532,7 +522,7 @@ int main() {
 
         if(cansys.read(rxMsg)){ // TODO: move this to a check_CAN function
             if((rxMsg.id>=CAN_TX_DXL1)&&(rxMsg.id<=CAN_TX_DXL6)){
-                pc.printf("Rcvd: %d\n\r", rxMsg.id);
+                // pc.printf("Rcvd: %d\n\r", rxMsg.id);
                 t2.reset();   
                 if (state==CAN_MODE){
                     unpack_cmd(rxMsg); // unpack command
@@ -548,6 +538,7 @@ int main() {
 
             if(cansys.read(rxMsg)){ // TODO: move this to a check_CAN function
                 if((rxMsg.id>=CAN_TX_DXL1)&&(rxMsg.id<=CAN_TX_DXL6)){
+                    // pc.printf("Rcvd: %d\n\r", rxMsg.id);
                     t2.reset();
                     if (state==CAN_MODE){
                         unpack_cmd(rxMsg); // unpack command
@@ -560,7 +551,9 @@ int main() {
             updateBus1();
 
             if(cansys.read(rxMsg)){ // TODO: move this to a check_CAN function
+                
                 if((rxMsg.id>=CAN_TX_DXL1)&&(rxMsg.id<=CAN_TX_DXL6)){
+                    // pc.printf("Rcvd: %d\n\r", rxMsg.id);
                     t2.reset();
                     if (state==CAN_MODE){
                         unpack_cmd(rxMsg); // unpack command
@@ -574,6 +567,7 @@ int main() {
 
             if(cansys.read(rxMsg)){ // TODO: move this to a check_CAN function
                 if((rxMsg.id>=CAN_TX_DXL1)&&(rxMsg.id<=CAN_TX_DXL6)){
+                    // pc.printf("Rcvd: %d\n\r", rxMsg.id);
                     t2.reset();
                     if (state==CAN_MODE){
                         unpack_cmd(rxMsg); // unpack command
