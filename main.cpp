@@ -11,6 +11,7 @@
 #define REST_MODE           0
 #define CAN_MODE            1
 #define DATA_MODE           2
+#define CURRENT_MODE        3
 
 #define CAN_SENSORS            0
 
@@ -135,6 +136,10 @@ uint16_t current_command2[3]; // in mA!
 uint16_t current_temp2[] = {0, 0, 0};
 float dxl_offsets2[] = {3.927f, 3.927f, 3.927f};
 
+uint32_t pos_temp1[3];
+uint32_t pos_temp2[3];
+
+
 // CAN command variables
 float dxl_pos_des[6];
 float dxl_vel_des[6];
@@ -178,8 +183,20 @@ void updateBus1(){
         currentPos1[i] = (pulse_to_rad*(float)dxl_position1[i])-dxl_offsets1[i];
         currentVel1[i] = rpm_to_rads*(float)dxl_velocity1[i];
         currentCur1[i] = 0.001f*(float)dxl_current1[i];
+
+        pos_temp1[i] = (int32_t)(dxl_offsets1[i]/pulse_to_rad);
+
+        dxl_pos_des[i] = 0.0;
+        dxl_vel_des[i] = 0.0;
+        dxl_kp[i] = 0.07;
+        dxl_kd[i] = 0.01;
+        dxl_tff_des[i] = 0.0;
+
+
     }
-    
+
+
+
     // commands are of the form tau_des[i] = Kp[i]*(pos_des[i]-pos[i]) + Kd[i]*(vel_des[i]-vel[i]) + tau_ff[i]; desired_current[i] = tau_des[i]/Kt;
     desired_current1[0] = Kt_inv*( dxl_kp[0]*(dxl_pos_des[0]-currentPos1[0]) + dxl_kd[0]*(dxl_vel_des[0]-currentVel1[0]) + dxl_tff_des[0] );
     desired_current1[0] = fmaxf(fminf(desired_current1[0],current_limit),-current_limit);
@@ -207,22 +224,23 @@ void updateBus1(){
     
     // check dynamixel errors
     // pc.printf("Errs 1: %d, %d, %d\n\r", dxl_bus1.errs[0], dxl_bus1.errs[1], dxl_bus1.errs[2]);
-    for(int i=0; i<num_IDs_1; i++){
-        re_init_1[i] = 0;
-        if (dxl_bus1.errs[i]==0x80){ // hardware error
-            re_init_1[i] = 1;
-            current_command1[i] = 0;
-        }
-    }
-    for(int i=0; i<num_IDs_1; i++){
-        if (re_init_1[i]==1){
-            init_dxl(&dxl_bus1, dxl_IDs_1[i], 1);
-        }
-    }
+    // for(int i=0; i<num_IDs_1; i++){
+    //     re_init_1[i] = 0;
+    //     if (dxl_bus1.errs[i]==0x80){ // hardware error
+    //         re_init_1[i] = 1;
+    //         current_command1[i] = 0;
+    //     }
+    // }
+    // for(int i=0; i<num_IDs_1; i++){
+    //     if (re_init_1[i]==1){
+    //         init_dxl(&dxl_bus1, dxl_IDs_1[i], 1);
+    //     }
+    // }
 
     // send commands
     dxl_bus1.SetMultGoalCurrents(dxl_IDs_1, num_IDs_1, current_command1); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
     // dxl_bus1.SetMultGoalCurrents(dxl_IDs_1, num_IDs_1, current_temp1); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
+    // dxl_bus1.SetMultGoalPositions(dxl_IDs_1, num_IDs_1, pos_temp1);
 
 }
 
@@ -238,8 +256,22 @@ void updateBus2(){
         currentPos2[i] = (pulse_to_rad*(float)dxl_position2[i])-dxl_offsets2[i];
         currentVel2[i] = rpm_to_rads*(float)dxl_velocity2[i];
         currentCur2[i] = 0.001f*(float)dxl_current2[i];
+
+        pos_temp2[i] = (int32_t)(dxl_offsets2[i]/pulse_to_rad);
+
+        dxl_pos_des[i+3] = 0.0;
+        dxl_vel_des[i+3] = 0.0;
+        dxl_kp[i+3] = 0.07;
+        dxl_kd[i+3] = 0.01;
+        dxl_tff_des[i+3] = 0.0;
+
+
+
     }
     
+
+
+
     // commands are of the form tau_des[i] = Kp[i]*(pos_des[i]-pos[i]) + Kd[i]*(vel_des[i]-vel[i]) + tau_ff[i]; desired_current[i] = tau_des[i]/Kt;
     desired_current2[0] = Kt_inv*( dxl_kp[3]*(dxl_pos_des[3]-currentPos2[0]) + dxl_kd[3]*(dxl_vel_des[3]-currentVel2[0]) + dxl_tff_des[3] );
     desired_current2[0] = fmaxf(fminf(desired_current2[0],current_limit),-current_limit);
@@ -268,23 +300,23 @@ void updateBus2(){
     
     // check dynamixel errors
     // pc.printf("Errs 2: %d, %d, %d\n\r", dxl_bus2.errs[0], dxl_bus2.errs[1], dxl_bus2.errs[2]);
-    for(int i=0; i<num_IDs_2; i++){
-        re_init_2[i] = 0;
-        if (dxl_bus2.errs[i]==0x80){
-            re_init_2[i] = 1;
-            current_command2[i] = 0;
-        }
-    }
-    for(int i=0; i<num_IDs_2; i++){
-        if (re_init_2[i]==1){
-            init_dxl(&dxl_bus2, dxl_IDs_2[i], 1); 
-        }
-    }
+    // for(int i=0; i<num_IDs_2; i++){
+    //     re_init_2[i] = 0;
+    //     if (dxl_bus2.errs[i]==0x80){
+    //         re_init_2[i] = 1;
+    //         current_command2[i] = 0;
+    //     }
+    // }
+    // for(int i=0; i<num_IDs_2; i++){
+    //     if (re_init_2[i]==1){
+    //         init_dxl(&dxl_bus2, dxl_IDs_2[i], 1); 
+    //     }
+    // }
 
     // send commands
     dxl_bus2.SetMultGoalCurrents(dxl_IDs_2, num_IDs_2, current_command2); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
     // dxl_bus2.SetMultGoalCurrents(dxl_IDs_2, num_IDs_2, current_temp2); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
-   
+//    dxl_bus2.SetMultGoalPositions(dxl_IDs_2, num_IDs_2, pos_temp2);
 }
 
 void enter_menu_state(void){
@@ -296,6 +328,8 @@ void enter_menu_state(void){
     pc.printf(" e - Enter CAN Mode\n\r");
     wait_us(10);
     pc.printf(" d - Print Motor Data\n\r"); // TODO: add Ticker and interrupt for this state
+    wait_us(10);
+    pc.printf(" c - Print Motor Currents\n\r");
     wait_us(10);
     pc.printf(" esc - Exit to Menu\n\r\n\r");
     wait_us(10);
@@ -469,10 +503,27 @@ int main() {
                         }
 
                         break;
-
+                    
                     case 'd':
                         state = DATA_MODE;
                         pc.printf("Printing motor data.\n\r");
+                        break;
+
+                    case 'c':
+                        state = CURRENT_MODE;
+                        pc.printf("Printing motor currents.\n\r");
+
+                        // enable dynamixels
+                        for (int i=0; i<num_IDs_1; i++){
+                            dxl_bus1.SetTorqueEn(dxl_IDs_1[i],0x01); 
+                            wait_us(100);
+                        }
+                        for (int i=0; i<num_IDs_2; i++){
+                            dxl_bus2.SetTorqueEn(dxl_IDs_2[i],0x01);
+                            wait_us(100);
+                        }
+
+
                         break;
                     }
             }  
@@ -480,105 +531,15 @@ int main() {
         }
 
         if(cansys.read(rxMsg)){ // TODO: move this to a check_CAN function
-            
             if((rxMsg.id>=CAN_TX_DXL1)&&(rxMsg.id<=CAN_TX_DXL6)){
-                
-                t2.reset();
-
-                // Enable messages
-                if((rxMsg.id==CAN_TX_DXL1) & (rxMsg.data[0]==0xFF) & (rxMsg.data[1]==0xFF) & (rxMsg.data[2]==0xFF) & (rxMsg.data[3]==0xFF) & (rxMsg.data[4]==0xFF) & (rxMsg.data[5]==0xFF) & (rxMsg.data[6]==0xFF) & (rxMsg.data[7]==0xFC)){
-                    // state = CAN_MODE;
-                    // pc.printf("Entering CAN mode.\n\r");
-                    // // enable dynamixels
-                    // for (int i=0; i<num_IDs_1; i++){
-                    //     dxl_bus1.SetTorqueEn(dxl_IDs_1[i],0x01); 
-                    //     wait_us(100);
-                    // }
-                    // for (int i=0; i<num_IDs_2; i++){
-                    //     dxl_bus2.SetTorqueEn(dxl_IDs_2[i],0x01);
-                    //     wait_us(100);
-                    // }
+                pc.printf("Rcvd: %d\n\r", rxMsg.id);
+                t2.reset();   
+                if (state==CAN_MODE){
+                    unpack_cmd(rxMsg); // unpack command
+                    // pc.printf("Received: %d\n\r", rxMsg.id);
                 }
-                // Disable messages
-                else if ((rxMsg.id==CAN_TX_DXL1) & (rxMsg.data[0]==0xFF) & (rxMsg.data[1]==0xFF) & (rxMsg.data[2]==0xFF) & (rxMsg.data[3]==0xFF) * (rxMsg.data[4]==0xFF) & (rxMsg.data[5]==0xFF) & (rxMsg.data[6]==0xFF) & (rxMsg.data[7]==0xFD)){
-                    // state = REST_MODE;
-                    // pc.printf("Entering rest mode.\n\r");
-                    // // disable dynamixels
-                    // for (int i=0; i<num_IDs_1; i++){
-                    //     dxl_bus1.SetTorqueEn(dxl_IDs_1[i],0x00);
-                    //     wait_us(100);
-                    // }
-                    // for (int i=0; i<num_IDs_2; i++){
-                    //     dxl_bus2.SetTorqueEn(dxl_IDs_2[i],0x00);
-                    //     wait_us(100);
-                    // }
-
-                    // // set current commands to zero
-                    // current_command1[0] = 0;
-                    // current_command1[1] = 0;
-                    // current_command1[2] = 0;
-                    // current_command2[0] = 0;
-                    // current_command2[1] = 0;
-                    // current_command2[2] = 0;
-
-                    // // zero out stored command values
-                    // for (int i=0; i<6; i++){
-                    //     dxl_pos_des[i] = 0;
-                    //     dxl_vel_des[i] = 0;
-                    //     dxl_tff_des[i] = 0;
-                    //     dxl_kp[i] = 0;
-                    //     dxl_kd[i] = 0;
-                    // }
-
-                } else { // motor control message
-                    
-                    if (state==CAN_MODE){
-                        unpack_cmd(rxMsg); // unpack command
-
-                        //pc.printf("Received: %d\n\r", rxMsg.id);
-
-                        /*
-                        if(rxMsg.id==CAN_TX_DXL1) { 
-                            pack_reply(&txDxl1, dxl_IDs_1[0], currentPos1[0], currentVel1[0], Kt*currentCur1[0]); 
-                            cansys.write(txDxl1);
-                            wait_us(100);
-                            }
-                        if(rxMsg.id==CAN_TX_DXL2) { 
-                            pack_reply(&txDxl2, dxl_IDs_1[1], currentPos1[1], currentVel1[1], Kt*currentCur1[1]); 
-                            cansys.write(txDxl2);
-                            wait_us(100);
-                            
-                            }
-                        if(rxMsg.id==CAN_TX_DXL3) { 
-                            pack_reply(&txDxl3, dxl_IDs_1[2], currentPos1[2], currentVel1[2], Kt*currentCur1[2]); 
-                            cansys.write(txDxl3);
-                            wait_us(100);
-                            }
-                        if(rxMsg.id==CAN_TX_DXL4) { 
-                            pack_reply(&txDxl4, dxl_IDs_2[0], currentPos2[0], currentVel2[0], Kt*currentCur2[0]); 
-                            cansys.write(txDxl4);
-                            wait_us(100);
-                            }
-                        if(rxMsg.id==CAN_TX_DXL5) { 
-                            pack_reply(&txDxl5, dxl_IDs_2[1], currentPos2[1], currentVel2[1], Kt*currentCur2[1]); 
-                            cansys.write(txDxl5);
-                            wait_us(100);
-                            }
-                        if(rxMsg.id==CAN_TX_DXL6) { 
-                            pack_reply(&txDxl6, dxl_IDs_2[2], currentPos2[2], currentVel2[2], Kt*currentCur2[2]); 
-                            cansys.write(txDxl6);
-                            wait_us(100);
-                            }  
-                        */
-                        
-                    }
-
-                }
-
                 can_time = t2.read_us();
-
             }
-
         }
 
         if (motor_data_flag==1) {
@@ -655,7 +616,13 @@ int main() {
                     t.read(), dxl_time, can_time, currentPos1[0], currentPos1[1], currentPos1[2], 
                     currentPos2[0], currentPos2[1], currentPos2[2]);
         }
-
+        if ((state==CURRENT_MODE)&&(print_data_flag==1)) { // print at slower frequency
+                print_data_flag = 0;
+                // print data 
+                pc.printf("%.3f, %d, %d,  %2.3f, %2.3f, %2.3f,  %2.3f, %2.3f, %2.3f\n\r",
+                    t.read(), dxl_time, can_time, currentCur1[0], currentCur1[1], currentCur1[2], 
+                    currentCur2[0], currentCur2[1], currentCur2[2]);
+        }
 
 
     } 
