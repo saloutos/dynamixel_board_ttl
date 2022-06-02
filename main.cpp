@@ -221,18 +221,18 @@ void updateBus1(){
     
     // check dynamixel errors
     // pc.printf("Errs 1: %d, %d, %d\n\r", dxl_bus1.errs[0], dxl_bus1.errs[1], dxl_bus1.errs[2]);
-    // for(int i=0; i<num_IDs_1; i++){
-    //     re_init_1[i] = 0;
-    //     if (dxl_bus1.errs[i]==0x80){ // hardware error
-    //         re_init_1[i] = 1;
-    //         current_command1[i] = 0;
-    //     }
-    // }
-    // for(int i=0; i<num_IDs_1; i++){
-    //     if (re_init_1[i]==1){
-    //         init_dxl(&dxl_bus1, dxl_IDs_1[i], 1);
-    //     }
-    // }
+    for(int i=0; i<num_IDs_1; i++){
+        re_init_1[i] = 0;
+        if (dxl_bus1.errs[i]==0x80){ // hardware error
+            re_init_1[i] = 1;
+            current_command1[i] = 0;
+        }
+    }
+    for(int i=0; i<num_IDs_1; i++){
+        if (re_init_1[i]==1){
+            init_dxl(&dxl_bus1, dxl_IDs_1[i], 1);
+        }
+    }
 
     // send commands
     dxl_bus1.SetMultGoalCurrents(dxl_IDs_1, num_IDs_1, current_command1); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
@@ -290,18 +290,18 @@ void updateBus2(){
     
     // check dynamixel errors
     // pc.printf("Errs 2: %d, %d, %d\n\r", dxl_bus2.errs[0], dxl_bus2.errs[1], dxl_bus2.errs[2]);
-    // for(int i=0; i<num_IDs_2; i++){
-    //     re_init_2[i] = 0;
-    //     if (dxl_bus2.errs[i]==0x80){
-    //         re_init_2[i] = 1;
-    //         current_command2[i] = 0;
-    //     }
-    // }
-    // for(int i=0; i<num_IDs_2; i++){
-    //     if (re_init_2[i]==1){
-    //         init_dxl(&dxl_bus2, dxl_IDs_2[i], 1); 
-    //     }
-    // }
+    for(int i=0; i<num_IDs_2; i++){
+        re_init_2[i] = 0;
+        if (dxl_bus2.errs[i]==0x80){
+            re_init_2[i] = 1;
+            current_command2[i] = 0;
+        }
+    }
+    for(int i=0; i<num_IDs_2; i++){
+        if (re_init_2[i]==1){
+            init_dxl(&dxl_bus2, dxl_IDs_2[i], 1); 
+        }
+    }
 
     // send commands
     dxl_bus2.SetMultGoalCurrents(dxl_IDs_2, num_IDs_2, current_command2); // average of ~2300us to read position, velocity, current, and set current, for 3 motors; 300us to print 3 floats            
